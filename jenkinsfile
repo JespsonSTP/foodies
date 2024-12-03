@@ -12,10 +12,17 @@ pipeline {
                 echo 'Changes detected in the backend/food folder. Proceeding with the pipeline...'
             }
         }
-        stage('Testing') {
+        stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Add your test steps here
+                sh 'sudo npm install'
+            }
+        }
+    }
+        stage('Build') {
+            steps {
+                echo 'Build app...'
+                sh 'node index.js'
             }
         }
     }
