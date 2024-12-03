@@ -1,0 +1,11 @@
+name: push users microservice to dockerhub
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "client/web/**"
+
+jobs:
+    //

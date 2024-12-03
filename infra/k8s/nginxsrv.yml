@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-nginx-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer: nlb
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+  selector:
+    app: nginx

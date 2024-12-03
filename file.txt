@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    triggers {
+        githubPush()
+    }
+    stages {
+        stage('Trigger Check') {
+            when {
+                changeset pattern: 'specific-folder/**', comparator: 'ANT'
+            }
+            steps {
+                echo 'Changes detected in specific-folder. Proceeding with the pipeline...'
+            }
+        }
+        stage('Testing') {
+            steps {
+                echo 'Running tests...'
+                // Add your test steps here
+            }
+        }
+        stage('Static Code Analysis') {
+            steps {
+                echo 'Running static code analysis...'
+                // Add your code analysis steps here
+            }
+        }
+        stage('Quality gate check') {
+            steps {
+                echo 'Running static code analysis...'
+                // Add your code analysis steps here
+            }
+        }
+        stage('Build and publish Docker images') {
+            steps {
+                echo 'Deploying application...'
+                // Add your deployment steps here
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+    }
+}

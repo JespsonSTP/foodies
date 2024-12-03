@@ -1,0 +1,45 @@
+{
+    "builders" : [
+        {
+            "type" : "amazon-ebs",
+            //"access_key" :"",
+           // "secret_key" :"", 
+            "ami_name" : "jenkins-controller.0.0.1-{{timestamp}}",
+            "ami_description" : "Amazon Linux Image with Jenkins Server",
+            "region" : "us-east-1",
+            "source_ami_filter": {
+                "filters": {
+                  "virtualization-type": "hvm",
+                  "name": "amzn2-ami-hvm*",
+                  "root-device-type": "ebs"
+                },
+                "owners": ["amazon"],
+                "most_recent": true
+            },
+            "instance_type" : "t2.micro",
+            "ssh_username" : "ec2-user"
+        }
+   ],
+   "provisioners" : [
+        {
+            "type" : "file",
+            "source" : "./scripts",
+            "destination" : "/tmp/"
+        },
+        {
+            "type" : "file",
+            "source" : "./config",
+            "destination" : "/tmp/"
+        },
+        {
+            "type" : "file",
+            "source" : "./id_rsa",
+            "destination" : "/tmp/id_rsa"
+        },
+        {
+            "type" : "shell",                                    
+            "script" : "./Install-Jenkins.sh",                             
+            "execute_command" : "sudo -E -S sh '{{ .Path }}'"    
+        }
+    ]
+}

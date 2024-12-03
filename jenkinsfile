@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+    triggers {
+        githubPush()
+    }
+    stages {
+        stage('Trigger Check') {
+            when {
+                changeset pattern: 'backend/food/**', comparator: 'ANT'
+            }
+            steps {
+                echo 'Changes detected in the backend/food folder. Proceeding with the pipeline...'
+            }
+        }
+        stage('Testing') {
+            steps {
+                echo 'Running tests...'
+                // Add your test steps here
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+    }
+}

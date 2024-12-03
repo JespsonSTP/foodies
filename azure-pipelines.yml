@@ -1,0 +1,41 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'react-native/**'
+
+
+steps:
+- script: echo Installing Node.js
+  displayName: 'Install Node.js'
+  
+- script: npm install -g expo-cli
+  displayName: 'Install Expo CLI'
+
+- script: npm ci
+  displayName: 'Install project dependencies'
+
+- script: expo login -u <your-expo-username> -p <your-expo-password>
+  displayName: 'Log in to Expo'
+
+- script: expo build:ios
+  displayName: 'Build iOS app'
+
+- script: expo build:android
+  displayName: 'Build Android app'
+
+- script: expo publish
+  displayName: 'Publish OTA updates'
+
+- script: echo Deploying to app stores
+  displayName: 'Deploy to app stores'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish build artifacts'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
