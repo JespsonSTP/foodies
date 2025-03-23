@@ -1,0 +1,137 @@
+version: '3'
+services:
+  ########################### API GATEWAY ##############################################
+  kong-api-gateway:
+    image: kong:2.7.2-alpine
+    volumes:
+      - "./:/kong/declarative/:rw"
+    environment:
+      - "KONG_DATABASE=off" 
+      - "KONG_DECLARATIVE_CONFIG=/kong/declarative/kong.yml"
+      - "KONG_PROXY_ACCESS_LOG=/dev/stdout" 
+      - "KONG_ADMIN_ACCESS_LOG=/dev/stdout" 
+      - "KONG_PROXY_ERROR_LOG=/dev/stderr" 
+      - "KONG_ADMIN_ERROR_LOG=/dev/stderr" 
+      - "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl"
+      - "KONG_LOG_LEVEL=debug"
+      - "KONG_PLUGINS=bundled"
+    networks:
+      - foodiesnetwork
+    ports:
+      - "8000:8000/tcp"
+      - "8443:8443/tcp"
+      - "127.0.0.1:8001:8001/tcp"
+      - "127.0.0.1:8444:8444/tcp"
+
+  ########################### DBS ##############################################
+
+  video-streaming-mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - video-streaming-mongo:/data/db
+    networks:
+      - foodiesnetwork
+    ports:
+      - "27017:27017"
+  
+  keycloak-postgres:
+    image: "postgres:14.4"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    volumes:
+      # change this to your local path
+      - keycloak_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: keycloak
+      POSTGRES_HOST: postgres
+    networks:
+      - foodiesnetwork
+    ports:
+      - "5433:5432"
+
+  ########################### apps ############################################
+  node-auth-app:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./backend/auth
+    env_file:
+      - ./backend/auth/.env
+    volumes:
+      - ./backend/auth/:/app
+      - /app/node_modules
+    networks:
+      - foodiesnetwork
+    ports:
+      - "3001:3001"
+    depends_on:
+      - node-auth-mongo
+  
+  im-mongo-express:
+    image: mongo-express
+    container_name: node-auth-mongo-express
+    restart: always
+    networks:
+      - foodiesnetwork
+    ports:
+      - 3002:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: node-auth-mongo
+      ME_CONFIG_BASICAUTH_USERNAME: root
+      ME_CONFIG_BASICAUTH_PASSWORD: example
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    links:
+      - node-auth-mongo
+  
+  keycloak:
+    container_name: keycloak
+    build:
+      dockerfile: Dockerfile
+      context: ./backend/keycloak
+      args:
+        KEYCLOAK_VERSION: 22.0.0
+    command: ['start', '--optimized', '--import-realm']
+    depends_on:
+      - keycloak-postgres
+
+    environment:
+      JAVA_OPTS_APPEND: -Dkeycloak.profile.feature.upload_scripts=enabled
+      KC_DB_PASSWORD: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/keycloak
+      KC_DB_USERNAME: postgres
+      KC_HEALTH_ENABLED: 'true'
+      KC_HTTP_ENABLED: 'true'
+      KC_METRICS_ENABLED: 'true'
+      KC_HOSTNAME_URL: http://localhost:8180
+      KC_PROXY: reencrypt
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+    networks:
+      - foodiesnetwork
+    ports:
+      - "8180:8080"
+      - "8787:8787" # debug port
+    volumes:
+      - ./foodiesteam-realm.json:/opt/keycloak/data/import/foodiesteam
+
+
+networks:
+  foodiesnetwork:
+    external: false
+    name: foodiesnetwork
+
+volumes:
+  video-streaming-mongo:
+  keycloak_postgres_data:
+
+# docker run -d --name nats-streaming -p 4222:4222 -p 8222:8222 nats-streaming

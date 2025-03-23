@@ -1,0 +1,29 @@
+npm init -y 
+npm i express pg   
+
+folder structure
+src
+server.js - create express server
+
+
+we wrapping the express server in http server in case we want to use socketio
+but we cou;d simplify init
+
+
+const express = require(express)
+const app = express();
+
+const PORT = 3000
+
+expressApp.use(express.json());
+expressApp.use(express.urlencoded({ extended: true }));
+
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+app.listen(PORT, () =>{
+    cnosole.log(`app is listening o ${PORT}`)
+}
+
+

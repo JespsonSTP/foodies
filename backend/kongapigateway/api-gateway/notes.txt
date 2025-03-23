@@ -1,0 +1,14 @@
+https://github.com/N5GEH/n5geh.tutorials.api-protection/tree/main?tab=readme-ov-file#api-protection-with-kong-api-gateway-and-keycloak-integration
+
+https://github.com/abrahamjoc/docker-compose-kong-konga/tree/master
+
+https://docs.konghq.com/gateway/latest/install/docker/build-custom-images/
+
+https://github.com/BGaunitz/kong-plugin-jwt-keycloak/tree/master?tab=readme-ov-file#installing-the-rock
+
+
+https://dev.to/robincher/securing-your-site-via-oidc-powered-by-kong-and-keycloak-2ccc
+
+https://www.jerney.io/secure-apis-kong-keycloak-2/
+
+https://www.jerney.io/secure-apis-kong-keycloak-1/
